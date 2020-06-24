@@ -1,0 +1,48 @@
+\documentclass[10pt]{jsarticle}
+\usepackage{cases}
+\usepackage{bm}
+\usepackage[dvipdfmx]{graphicx}
+\usepackage{indentfirst}
+\begin{document}
+\begin{center}
+{\LARGE 発話時間の特徴量選択について}\\
+\end{center}
+\section{特徴量}
+\subsection{状態集合の定義}
+\noindent
+\begin{tabbing}
+\hspace{20mm} \= \hspace{15mm} \kill
+\ \ \ \ $S_1$ \>：話者Aが発話している状態の集合\\
+\ \ \ \ $S_2$ \>：話者Bが発話している状態の集合\\
+\ \ \ \ $S_3$\> ：二人の話者が同時に発話している状態の集合\\
+\ \ \ \ $S_4$\>：どちらの話者も発話していない状態の集合\\
+\end{tabbing}
+\subsection{統計量（特徴量番号1 - 24）}
+\begin{tabbing}
+\hspace{40mm} \= \hspace{15mm} \kill
+\ \ \ \ $mean(S)$ \>：Sの平均\\
+\ \ \ \ $var(S)$ \>：Sの分散\\
+\ \ \ \ $min(S)$\> ：Sの最小値\\
+\ \ \ \ $max(S)$\>：Sの最大値\\
+\ \ \ \ $count(S)$\>：Sの要素数\\
+\ \ \ \ $occupy(S)$ \> ：Sの対話全体における占有率\\
+\ \ \ \ 候補（使わないかも）：\\
+\ \ \ \ \ \ \ \ $25p\_tile(S)$ \> ：Sの25パーセンタイル\\
+\ \ \ \ \ \ \ \ $median(S)$ \> ：Sの中央値\\
+\ \ \ \ \ \ \ \ $75p\_tile(S)$ \> ：Sの75パーセンタイル\\
+\end{tabbing}
+\subsection{状態間の特徴}
+stat：各統計量
+\begin{itemize}
+\item 話者Aと話者Bの発話の比（特徴量番号 25 - 48）\\
+$\frac{stat(S_2)}{stat(S_1)}$, $\frac{stat(S_2)+stat(S_3)}{stat(S_1)+stat(S_3)}$, $\frac{stat(S_1)}{stat(S_1)+stat(S_2)}$, $\frac{stat(S_2)}{stat(S_1) + stat(S_2)}$
+\item 発話全体における無音状態の割合（特徴量番号 49 - 54）\\
+$\frac{stat(S_4)}{stat(S_1) + stat(S_2) + stat(S_3)}$
+\item 全状態における各状態の割合（特徴量番号 55 - 78）\\
+$\frac{stat(S_1)}{\sum_i{stat(S_i)}}$, $\frac{stat(S_2)}{\sum_i{stat(S_i)}}$, $\frac{stat(S_3)}{\sum_i{stat(S_i)}}$, $\frac{stat(S_4)}{\sum_i{stat(S_i)}}$, 
+\item 話者A（話者B)の発話と同時発話の比(特徴量番号 79 - 114)\\
+\ \ \ $\frac{stat(S_3)}{stat(S_1)}$, $\frac{stat(S_3)}{stat(S_1) + stat(S_3)}$, $\frac{stat(S_1)}{stat(S_1) + stat(S_3)}$\\
+(\ \ $\frac{stat(S_3)}{stat(S_2)}$, $\frac{stat(S_3)}{stat(S_2) + stat(S_3)}$, $\frac{stat(S_2)}{stat(S_2) + stat(S_3)}$\ \ )
+\end{itemize}
+
+\end{document}
