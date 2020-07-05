@@ -12,6 +12,7 @@ class OpenSMILE:
       os.remove(export_path)
 
     for path in sound_pathes:
+      print(path)
       subprocess.call([
         "SMILExtract_Release", 
         "-C", CONFIG_PATH, 
@@ -22,7 +23,7 @@ class OpenSMILE:
 
 if __name__ == "__main__":
     OS = OpenSMILE()
-    # OS.sound_to_arff("../../processing/data/sound_state1")
+    OS.sound_to_arff("../../processing/data/state_sound/concatinate/1/")
     # OS.arff_to_array()
 
 

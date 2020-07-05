@@ -11,7 +11,7 @@ import pandas as pd
 class FeatureValue :
     def __init__(self, dirname, is_both=True) :
         self.__QESTION_FILEPATH = '../questionaire/all.csv'
-        self.__VAD_DIRPATH = '../../VAD/data/csv/'
+        self.__VAD_DIRPATH = '../../processing/data/VAD/data/csv/'
         self.__IS_BOTH = is_both
         self.__voice_states = []
         self.__voice_features = []
@@ -65,10 +65,10 @@ class FeatureValue :
                 path_r = current_targets[1]
 
                 # get left person's data
-                file_id = int(current_targets[0].strip(self.__VAD_DIRPATH + '\\').strip(".csv"))
+                file_id = int(current_targets[0].lstrip(self.__VAD_DIRPATH + '\\').rstrip(".csv"))
                 section = int(file_id / 1000)
                 subject_id = int(file_id % 1000)
-                print(subject_id)
+                # print(subject_id)
                 while len(self.__voice_states) < subject_id + 1 :
                     self.__voice_states.append([[],[],[],[]])
                 voice_l = VoiceState(path_l, path_r)
@@ -76,12 +76,12 @@ class FeatureValue :
                 self.__fin_times[0].append(voice_l.get_fin_time())
 
                 # get right person's data
-                file_id_base = current_targets[1].strip(self.__VAD_DIRPATH + '\\').strip(".csv")
+                file_id_base = current_targets[1].lstrip(self.__VAD_DIRPATH + '\\').rstrip(".csv")
                 if not "_p" in file_id_base :
                     file_id = int(file_id_base)
                     section = int(file_id / 1000)
                     subject_id = int(file_id % 1000)
-                    print(subject_id)
+                    # print(subject_id)
                     while len(self.__voice_states) < subject_id + 1 :
                         self.__voice_states.append([[],[],[],[]])
                     voice_r = VoiceState(path_r, path_l)
@@ -102,7 +102,7 @@ class FeatureValue :
                 filepath = '../../processing/data/state_list/' + str(subject[0]) + '_' + str(subject[1]) + '.csv'
                 print(filepath)
 
-                with open(filepath, 'w') as f:
+                with open(filepath, 'w', newline="") as f:
                     writer = csv.writer(f)
                     writer.writerows(state[1:])
 
@@ -195,7 +195,7 @@ class FeatureValue :
         return True
 
 def main() :
-    feature = FeatureValue(dirname='personal_SMIRNOV', is_both=True)
+    feature = FeatureValue(dirname='JSKE_2020', is_both=True)
     feature.set_voice_state()
     feature.write_voice_state()
     # feature.add_voice_state_personal()
