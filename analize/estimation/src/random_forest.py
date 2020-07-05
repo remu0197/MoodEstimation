@@ -57,6 +57,7 @@ class SplitMethod :
 
 class RandomForest :
     def __init__(self, path, is_minimize=False, is_norm=False, file='', dir="") :
+        print(path)
         self.__df = pd.read_csv(path)
         if is_minimize is True :
             self.__df['ANSWER'] = self.__df['ANSWER'].apply(lambda x: 0 if int(x) <= 2 else 1 )
@@ -106,7 +107,7 @@ class RandomForest :
         # clf = clf.fit(all_X, all_Y)
         # self.__feature_list.append(clf.feature_importances_)
 
-        test_dataset = pd.read_csv('../feature_value/data/side_b_k2/' + self.file)
+        test_dataset = pd.read_csv('../../feature_value/data/JSKE_2020/' + self.file)
         test_dataset = test_dataset.drop(['ID', 'SECTION'], axis=1)
 
         if split_method == 'leave_human_out' :
@@ -150,8 +151,8 @@ class RandomForest :
 
     def __edit_dataset(self, subject_index, baseX, baseY, is_pair, test_dataset) :
         result, X = [], baseX.drop(['ID', 'SECTION'],axis=1)
-        test_X = test_dataset.drop('ANSWER', axis=1)
-        test_Y = test_dataset.ANSWER.apply(lambda x: 0 if int(x) <= 2 else (2 if int(x) > 3 else 1))
+        # test_X = test_dataset.drop('ANSWER', axis=1)
+        # test_Y = test_dataset.ANSWER.apply(lambda x: 0 if int(x) <= 2 else (2 if int(x) > 3 else 1))
 
         if self.__is_norm :
             sc = StandardScaler()
@@ -274,10 +275,10 @@ class RandomForest :
 
     def __param(self) :
         ret = {
-            'n_estimators': np.arange(10, 50, 10),
+            'n_estimators': np.arange(10, 100, 10),
             'criterion': ['gini', 'entropy'],
             # 'max_features': [None],
-            'max_depth': np.arange(1, 10, 1),
+            'max_depth': np.arange(5, 20, 1),
             'min_samples_split': np.arange(4,5,1),
             # 'C': [10 ** i for i in range(-5, 6)],
         }

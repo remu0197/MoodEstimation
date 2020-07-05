@@ -98,7 +98,12 @@ class SoundCreater:
 
           base_sounds = []
           base_pathes = glob.glob(import_dir + id_dir + "/" + str(i) + "_" + str(j) + "_*.wav")
+
+          if len(base_pathes) == 0:
+            continue
+
           for base_path in base_pathes:
+            print(base_path)
             base_sound = AudioSegment.from_file(base_path, format="wav")
             base_sounds.append(base_sound)
 
@@ -236,7 +241,7 @@ if __name__ == "__main__":
     SC = SoundCreater()
     for i in range(1, 2):
      SC.extract_state(i, is_update=False)
-     SC.concatinate_state(i, is_update=False)
+     SC.concatinate_state(i, is_update=True)
 
 
 ## たぶん音声の終了時間がずれてーら

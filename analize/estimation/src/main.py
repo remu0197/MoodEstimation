@@ -13,7 +13,7 @@ def main(dir, method, trials, is_minimize, is_norm) :
     seeds = []
     used_slead_count, MAX_SLEAD_COUNT = 0, 5
 
-    with open('./result/seeds.csv', 'r') as f :
+    with open('../result/seeds.csv', 'r') as f :
         reader = csv.reader(f)
         for row in reader :
             row = [int(x) for x in row]
@@ -29,14 +29,14 @@ def main(dir, method, trials, is_minimize, is_norm) :
     elif len(seeds) > TRIALS_COUNT :
         seeds = seeds[:-(len(seeds) - TRIALS_COUNT)]
 
-    with open('./result/seeds.csv', 'w') as f :
+    with open('../result/seeds.csv', 'w') as f :
         writer = csv.writer(f, lineterminator='\n')
         writer.writerow(seeds)
 
     taxonomy = '2_class/' if bool(is_minimize) is True else '3_class/'
     outdir = dir + ('_norm' if bool(is_norm) is True else '')
 
-    result_path = './result/' + taxonomy + outdir + '/'
+    result_path = '../result/' + taxonomy + outdir + '/'
     print('result path: ' + result_path)
     if not os.path.isdir(result_path) :
         os.mkdir(result_path)
@@ -47,7 +47,7 @@ def main(dir, method, trials, is_minimize, is_norm) :
     executer = concurrent.futures.ProcessPoolExecutor(max_workers=5)
 
     if method == 'random_forest' :
-        target_path = '../feature_value/data/' + dir
+        target_path = '../../feature_value/data/' + dir
         pathes = glob.glob(target_path + '/*.csv')
         files = os.listdir(target_path)
         result_all = [[] for i in range(len(pathes))]
@@ -149,7 +149,7 @@ def func(x) :
 def argument_error(error_string) :
     print(error_string)
     print('     0: learning datasets\' directory name')
-    print('     1: cluster data\'s directory name')
+    # print('     1: cluster data\'s directory name')
     print('     2: estimation method name')
     print('     3: trials count')
     print('     4: Flag of is_minimize(0 or 1)')
