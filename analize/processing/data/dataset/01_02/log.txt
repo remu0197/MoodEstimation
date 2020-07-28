@@ -1,6 +1,0 @@
-capture start at: 1544469807.402498
-capture start at: 1544469807.4029994
-record start at: 1544469807.4035003
-record finish at: 1544470107.424269
-capture finish at: 1544470108.8344815
-capture finish at: 1544470108.9209177

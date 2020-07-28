@@ -1,4 +1,4 @@
-import csv
+import csv, sys
 import os
 import glob
 from enum import Enum
@@ -10,8 +10,8 @@ import pandas as pd
 
 class FeatureValue :
     def __init__(self, dirname, is_both=True) :
-        self.__QESTION_FILEPATH = '../questionaire/all.csv'
-        self.__VAD_DIRPATH = '../../VAD/data/csv/'
+        self.__QESTION_FILEPATH = '../../processing/data/questionaire/all.csv'
+        self.__VAD_DIRPATH = '../../processing/data/VAD/data/csv/'
         self.__IS_BOTH = is_both
         self.__voice_states = []
         self.__voice_features = []
@@ -36,7 +36,7 @@ class FeatureValue :
         self.__fin_times = [[], [], []]
 
         MAX_ITEM_COUNT = 240
-        col_name = ['ID', 'SECTION', 'ANSWER']
+        col_name = ['ANSWER', 'ID', 'SECTION']
         for i in range(1, MAX_ITEM_COUNT + 1) :
             col_name.append(str(i))
 
@@ -65,10 +65,10 @@ class FeatureValue :
                 path_r = current_targets[1]
 
                 # get left person's data
-                file_id = int(current_targets[0].strip(self.__VAD_DIRPATH + '\\').strip(".csv"))
+                file_id = int(current_targets[0].lstrip(self.__VAD_DIRPATH + '\\').rstrip(".csv"))
                 section = int(file_id / 1000)
                 subject_id = int(file_id % 1000)
-                print(subject_id)
+                # print(subject_id)
                 while len(self.__voice_states) < subject_id + 1 :
                     self.__voice_states.append([[],[],[],[]])
                 voice_l = VoiceState(path_l, path_r)
@@ -76,12 +76,12 @@ class FeatureValue :
                 self.__fin_times[0].append(voice_l.get_fin_time())
 
                 # get right person's data
-                file_id_base = current_targets[1].strip(self.__VAD_DIRPATH + '\\').strip(".csv")
+                file_id_base = current_targets[1].lstrip(self.__VAD_DIRPATH + '\\').rstrip(".csv")
                 if not "_p" in file_id_base :
                     file_id = int(file_id_base)
                     section = int(file_id / 1000)
                     subject_id = int(file_id % 1000)
-                    print(subject_id)
+                    # print(subject_id)
                     while len(self.__voice_states) < subject_id + 1 :
                         self.__voice_states.append([[],[],[],[]])
                     voice_r = VoiceState(path_r, path_l)
@@ -112,6 +112,8 @@ class FeatureValue :
         for i, states in enumerate(self.__voice_states) :
             if len(states[0]) is 0 :
                 print('No.' + str(i) + ' is LOST')
+                self.__personal_states_1.append([[],[],[],[]])
+                self.__personal_states_2.append([[],[],[],[]])
                 continue
 
             personal = VoiceStatePersonal(states)
@@ -127,6 +129,7 @@ class FeatureValue :
 
     # TODO fin_timeどうするか + extend ２回ののちappend
     def set_voice_features(self) :
+        index = 0
         for x,states in enumerate(self.__voice_states) :
             is_exist = False
             for state in states :
@@ -137,18 +140,20 @@ class FeatureValue :
                 continue
             
             for i, state in enumerate(states) :
-                features = []
+                features = [x, i+1]
                 if len(state) > 0 :
+                    print(str(x) + ":" + str(index) + "," + str(i))
                     feature = VoiceFeacure(voice_states=state, is_half=not self.__IS_BOTH)
-                    features.extend(feature.get_voice_feature(self.__fin_times[0][x*4+i]))
+                    features.extend(feature.get_voice_feature(self.__fin_times[0][index]))
 
                     feature = VoiceFeacure(voice_states=self.__personal_states_1[x][i])
-                    features.extend(feature.get_voice_feature(self.__fin_times[1][x*4+i]))
+                    features.extend(feature.get_voice_feature(self.__fin_times[1][index]))
 
                     feature = VoiceFeacure(voice_states=self.__personal_states_2[x][i])
-                    features.extend(feature.get_voice_feature(self.__fin_times[2][x*4+i]))
+                    features.extend(feature.get_voice_feature(self.__fin_times[2][index]))
                     
                     self.__voice_features.append(features)
+                    index = index + 1
                     
     def append_answer_features(self) :
         f = open(self.__QESTION_FILEPATH, 'r')
@@ -172,7 +177,7 @@ class FeatureValue :
                     continue
 
                 for j in range(1, 8) :
-                    target = [subject_num, (i + 1), row[i * 7 + j]]
+                    target = [row[i * 7 + j]]
                     target.extend(feature)
                     self.__csv_readers[j-1].writerow(target)     
 
@@ -195,12 +200,12 @@ class FeatureValue :
         return True
 
 def main() :
-    feature = FeatureValue(dirname='personal_SMIRNOV', is_both=True)
+    feature = FeatureValue(dirname='JSKE_2020', is_both=True)
     feature.set_voice_state()
-    feature.write_voice_state()
-    # feature.add_voice_state_personal()
-    # feature.set_voice_features()
-    # feature.append_answer_features()
+    # feature.write_voice_state()
+    feature.add_voice_state_personal()
+    feature.set_voice_features()
+    feature.append_answer_features()
     # feature.write()
     feature.close()
 

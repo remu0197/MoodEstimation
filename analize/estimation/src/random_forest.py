@@ -106,7 +106,7 @@ class RandomForest :
         # clf = clf.fit(all_X, all_Y)
         # self.__feature_list.append(clf.feature_importances_)
 
-        test_dataset = pd.read_csv('../feature_value/data/side_b_k2/' + self.file)
+        test_dataset = pd.read_csv('../../feature_value/data/JSKE_2020/' + self.file)
         test_dataset = test_dataset.drop(['ID', 'SECTION'], axis=1)
 
         if split_method == 'leave_human_out' :
@@ -150,8 +150,8 @@ class RandomForest :
 
     def __edit_dataset(self, subject_index, baseX, baseY, is_pair, test_dataset) :
         result, X = [], baseX.drop(['ID', 'SECTION'],axis=1)
-        test_X = test_dataset.drop('ANSWER', axis=1)
-        test_Y = test_dataset.ANSWER.apply(lambda x: 0 if int(x) <= 2 else (2 if int(x) > 3 else 1))
+        # test_X = test_dataset.drop('ANSWER', axis=1)
+        # test_Y = test_dataset.ANSWER.apply(lambda x: 0 if int(x) <= 2 else (2 if int(x) > 3 else 1))
 
         if self.__is_norm :
             sc = StandardScaler()
