@@ -88,7 +88,7 @@ class RandomForest :
             # LogisticRegression(random_state=seed),
             RandomForestClassifier(random_state=seed, class_weight='balanced'),
             self.__param(),
-            cv=5,
+            cv=34,
             scoring='f1_macro'
         )
 
@@ -114,7 +114,7 @@ class RandomForest :
             for i in range(int(len(self.__df) / 4)) :
                 index = i * 4
                 data = []
-                if i+1 < len(self.__df) and self.__df.iloc[i]['ID'] is self.__df.iloc[i+1]['ID']:
+                if False: #i+1 < len(self.__df) and self.__df.iloc[i]['ID'] is self.__df.iloc[i+1]['ID']:
                     data_list.append(self.__edit_dataset(index, all_X, all_Y, True, test_dataset))
                     i = i + 1
                 else :
@@ -160,7 +160,7 @@ class RandomForest :
             X = pd.DataFrame(sc.transform(X), columns=X.columns)
 
         x = subject_index
-        if is_pair :
+        if False :
             result.append(X.drop([x, x+1, x+2, x+3, x+4, x+5, x+6, x+7]))
             result.append(X.iloc[x:x+8])
             # result.append(test_X)
@@ -275,10 +275,10 @@ class RandomForest :
 
     def __param(self) :
         ret = {
-            'n_estimators': np.arange(10, 100, 10),
+            'n_estimators': np.arange(50, 300, 50),
             'criterion': ['gini', 'entropy'],
             # 'max_features': [None],
-            'max_depth': np.arange(5, 20, 1),
+            'max_depth': np.arange(10, 40, 10),
             'min_samples_split': np.arange(4,5,1),
             # 'C': [10 ** i for i in range(-5, 6)],
         }

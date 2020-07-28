@@ -34,28 +34,27 @@ class VoiceStatePersonal :
             for i in range(1, len(states)) :
                 state_num = states[i][0]
                 state_time = states[i][1]
+                state_except = states[i][2]
 
-                if state_num is 1 :
+                if state_num is 1 and state_except == "0":
                     states_1.append(state_time)
                 elif state_num is 2 :
                     states_2.append(state_time)
 
         self.__mean_1, self.__mean_2 = self.__get_mean(states_1, index), self.__get_mean(states_2, index)
 
-        # print(str(self.__mean_1) + ' : ' + str(self.__mean_2))
-
     def __get_mean(self, array, index) :
         if len(array) is 0 : 
             return 1
 
-        cluster = Clusterizer(array)
-        labels = cluster.predict(method='SMIRNOV',should_remove_filler=True)
-        path = "../fig/" + '{0:%y%m%d%H%M}'.format(datetime.datetime.now())
-        if not os.path.exists(path) :
-            os.mkdir(path)
+        # cluster = Clusterizer(array)
+        # labels = cluster.predict(method='SMIRNOV',should_remove_filler=True)
+        # path = "../fig/" + '{0:%y%m%d%H%M}'.format(datetime.datetime.now())
+        # if not os.path.exists(path) :
+        #     os.mkdir(path)
 
-        path = path + "/" + str(index) + ".png"
-        cluster.save_plot(path)
+        # path = path + "/" + str(index) + ".png"
+        # cluster.save_plot(path)
 
         # フィラーを外れ値として外す
         # with open(csv_file) as f :
@@ -66,7 +65,8 @@ class VoiceStatePersonal :
         
         total, count = 0, 0
         for i, x in enumerate(array) :
-            if labels[i] != 1 :
+            # if labels[i] != 1 :
+            if True:
                 total = total + x
                 count = count + 1
 
@@ -90,3 +90,4 @@ class VoiceStatePersonal :
             fin_times_2.append(fin_times[i] / self.__mean_2)
 
         return voice_states_1, voice_states_2, fin_times_1, fin_times_2
+

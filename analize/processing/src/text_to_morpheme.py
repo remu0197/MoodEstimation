@@ -62,18 +62,21 @@ def filler_checker(is_update=False):
     except_id_list = []
     except_id_list.extend(range(10))
     except_id_list.extend(range(13,31))
+    except_id_list.extend([34,35])
 
     INPUT_DIR = "../data/edit_texts/"
-    OUTPUT_DIR = "../data/except_sections/"
+    OUTPUT_DIR = "../data/main/"
     csv_pathes = glob.glob(INPUT_DIR + "/**/*.csv")
 
     TTM = TextToMorpheme()
     for path in csv_pathes:
-        subject_info = path.lstrip(OUTPUT_DIR).lstrip("\\")
+        subject_info = path.lstrip(INPUT_DIR).lstrip("\\")
         filepath = subject_info.split("\\")
-        subject_group, filename = filepath[0], filepath[1]
+        subject_group, filename = filepath[0], filepath[1].rstrip(".csv")
 
-        output_path = OUTPUT_DIR + subject_group + "/" + filename
+        subject_indexes = filename.split("_")
+        output_path = OUTPUT_DIR + subject_group + "/" + subject_indexes[1] + "_" + subject_indexes[0] + ".csv"
+
         if os.path.exists(output_path) and not is_update:
             print("SKIP   :" + path)
             continue
@@ -102,6 +105,6 @@ def filler_checker(is_update=False):
             writer.writerows(check_list)
 
 if __name__ == "__main__":
-    # filler_checker()
-    TTM = TextToMorpheme()
-    print(TTM.to_morpheme("ほう", is_id=False))
+    filler_checker(is_update=True)
+    # TTM = TextToMorpheme()
+    # print(TTM.to_morpheme("ăľă", is_id=False))

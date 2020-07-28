@@ -1,4 +1,4 @@
-import csv
+import csv, sys, os, glob
 
 class Person() :
     FIRST = 0
@@ -18,6 +18,33 @@ class VoiceState :
         self.__voice_states = []
         self.__time_line = 0.0
         self.__stash_timeline = -1
+
+        # print(path_f)
+        EXCEPT_DIRPATH = "../../processing/data/except_sections/"
+        except_dirs = glob.glob(EXCEPT_DIRPATH + "*")
+
+        basename = os.path.basename(path_f).rstrip(".csv")
+        id, index = basename[2:], str(int(basename[0]) - 1)
+        subject_group = ""
+
+        for dir in except_dirs:
+            group_name = os.path.basename(dir)
+            if id in group_name:
+                subject_group = group_name
+
+        except_filepath = EXCEPT_DIRPATH + subject_group + "/" + str((int(id)+1) % 2) + "_" + index + ".csv"
+        if not os.path.exists(except_filepath):
+            except_filepath = EXCEPT_DIRPATH + subject_group + "/" + "0_" + index + ".csv"
+        # print(except_filepath)
+        
+        self.__is_except_list = []
+        with open(except_filepath, "r") as f:
+            reader = csv.reader(f)
+            for row in reader:
+                self.__is_except_list.append(row[0])
+
+        self.__is_active = False
+        self.__is_except = "0"
 
         stops_f = []
         stops_s = []
@@ -44,6 +71,14 @@ class VoiceState :
         self.__stops.append(stops_s)
         f.close()
 
+    def __set_is_active(self, flag):
+        # print(self.__index[Person.FIRST])
+        if flag and not self.__is_active:
+            # print("Active!")
+            self.__is_except = self.__is_except_list.pop(0)
+
+        self.__is_active = flag
+
     def get_voice_states(self, subject_id, section_num, is_both=True) :
         self.__voice_states.append([subject_id, section_num])
         top_first = self.__stops[Person.FIRST][0][State.START]
@@ -53,15 +88,19 @@ class VoiceState :
         while self.__index[Person.FIRST] < len(self.__stops[Person.FIRST]) or self.__index[Person.SECOND] < len(self.__stops[Person.SECOND]) :
             if self.__is_stop[Person.FIRST] and self.__is_stop[Person.SECOND] :
                 # Nobady is talk(State No.4)
+                self.__set_is_active(False)
                 self.__stack_voice_state(4)
             elif not(self.__is_stop[Person.FIRST]) and self.__is_stop[Person.SECOND] :
                 # First is talk(State No.1)
+                self.__set_is_active(True)
                 self.__stack_voice_state(1)
             elif self.__is_stop[Person.FIRST] and not(self.__is_stop[Person.SECOND]) :
                 # Second is talk(State No.2)
+                self.__set_is_active(False)
                 self.__stack_voice_state(2, is_both)
             else :
                 # Both are talk(State No.3)
+                self.__set_is_active(True)
                 self.__stack_voice_state(3)
 
         if not is_both :
@@ -73,6 +112,7 @@ class VoiceState :
         return self.__fin_time
 
     def __stack_voice_state(self, state_num, is_valid=True) :
+        # print(state_num)
         state_f = State.STOP if self.__is_stop[Person.FIRST] else State.START
         state_s = State.STOP if self.__is_stop[Person.SECOND] else State.START
         index_f = self.__index[Person.FIRST]
@@ -113,8 +153,12 @@ class VoiceState :
 
     def __export_voice_state(self, next, state_num) :
         state_length = next - self.__time_line
+        is_except = self.__is_except
+        if state_num % 2 == 0:
+            is_except = 0
+
         if state_length > 0.0 :
-            self.__voice_states.append([state_num, state_length])
+            self.__voice_states.append([state_num, state_length, is_except])
 
         self.__time_line = next
 

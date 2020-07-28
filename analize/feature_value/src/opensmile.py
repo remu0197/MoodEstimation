@@ -4,7 +4,7 @@ import numpy as np
 
 class OpenSMILE:
   def sound_to_arff(self, sound_dir, format="wav"):
-    CONFIG_PATH = "C:/Users/remu/Documents/Labo/Mood/opensmile-2.3.0/config/IS10_paraling.conf"
+    CONFIG_PATH = "C:/Program Files/opensmile-2.3.0/config/IS10_paraling.conf"
     sound_pathes = glob.glob(sound_dir + "/**/*." + format)
     export_path = "../data/IS10.arff"
 

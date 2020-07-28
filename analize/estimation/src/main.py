@@ -11,7 +11,7 @@ import concurrent.futures
 
 def main(dir, method, trials, is_minimize, is_norm) :
     seeds = []
-    used_slead_count, MAX_SLEAD_COUNT = 0, 5
+    used_slead_count, MAX_SLEAD_COUNT = 0, 10
 
     with open('../result/seeds.csv', 'r') as f :
         reader = csv.reader(f)
@@ -44,7 +44,7 @@ def main(dir, method, trials, is_minimize, is_norm) :
     if not os.path.isdir(result_path) :
         os.mkdir(result_path)
 
-    executer = concurrent.futures.ProcessPoolExecutor(max_workers=5)
+    executer = concurrent.futures.ProcessPoolExecutor(max_workers=10)
 
     if method == 'random_forest' :
         target_path = '../../feature_value/data/' + dir
