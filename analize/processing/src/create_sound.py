@@ -63,6 +63,32 @@ class SoundCreater:
           print(" EXPORT  : " + export_path)
           edit_sound.export(export_path, format="wav")
 
+  def extract_sound(self, is_update=False):
+    count = 0
+    data_dirs = glob.glob("../data/consortium/edit/*")
+    for data_dir in data_dirs:
+      section_pathes = glob.glob(data_dir + "/sections/*.csv")
+      for path in section_pathes:
+        file_id = os.path.basename(path).rstrip(".csv")
+        sound_path = data_dir + "/sound/" + file_id + ".wav"
+        base_sound = AudioSegment.from_file(sound_path, format="wav")
+        start, end = 0.0, 0.0
+
+        with open(path, "r") as f:
+          reader = csv.reader(f)
+          index = 0
+          for row in reader:
+            end = float(row[0])
+            if float(end) != float(0):
+              # edit = base_sound[int(start*1000):int(end*1000)]
+              # edit.export(data_dir + "/extract_sound/" + file_id + "_" + str(index) + ".wav", format="wav")
+              index = index + 1
+              # print(str(start) + " : " + str(end))
+              count = count + 1
+            start = float(row[1])
+
+    print("Total: " + str(count))
+
   def extract_state(self, state_num, is_update=False):
     export_dir = "../data/state_sound/default/" + str(state_num) + "/"
     if not os.path.exists(export_dir):
@@ -238,10 +264,13 @@ class SoundCreater:
 
 
 if __name__ == "__main__":
-    SC = SoundCreater()
-    for i in range(1, 2):
-     SC.extract_state(i, is_update=False)
-     SC.concatinate_state(i, is_update=True)
+  # SC = SoundCreater()
+  # for i in range(1, 2):
+  #   SC.extract_state(i, is_update=False)
+  #   SC.concatinate_state(i, is_update=True)
+
+  SC = SoundCreater()
+  SC.extract_sound()
 
 
 ## たぶん音声の終了時間がずれてーら

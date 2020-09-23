@@ -8,10 +8,12 @@ import numpy as np
 import warnings
 import datetime
 import concurrent.futures
+import os
+from mood_estimater import MoodEstimator
 
 def main(dir, method, trials, is_minimize, is_norm) :
     seeds = []
-    used_slead_count, MAX_SLEAD_COUNT = 0, 10
+    used_slead_count, MAX_SLEAD_COUNT = 0, 24
 
     with open('../result/seeds.csv', 'r') as f :
         reader = csv.reader(f)
@@ -44,7 +46,7 @@ def main(dir, method, trials, is_minimize, is_norm) :
     if not os.path.isdir(result_path) :
         os.mkdir(result_path)
 
-    executer = concurrent.futures.ProcessPoolExecutor(max_workers=10)
+    executer = concurrent.futures.ProcessPoolExecutor(max_workers=MAX_SLEAD_COUNT)
 
     if method == 'random_forest' :
         target_path = '../../feature_value/data/' + dir
@@ -55,8 +57,8 @@ def main(dir, method, trials, is_minimize, is_norm) :
         for i, path in enumerate(pathes) :
             print('Current Target: ' + path)
             forest = RandomForest(path, bool(is_minimize), bool(is_norm), files[i], dir)
-            results = [['datasize', str(forest.get_data_size())], [], ['ID', 'Accuracy', 'f_0', 'f_1', 'f_2', 'f_m', 'r_0', 'r_1', 'r_2', 'r_m', 'p_0', 'p_1', 'p_2', 'p_m', '+1', '0', '-1']]
-            params, features = [], []
+            select_futures = [[] for _ in range(7)]
+            features = []
             result_all[i].append([])
             result_all[i].append([['datasize', str(forest.get_data_size())], [], ['ID', 'Accuracy', 'f_0', 'f_1', 'f_2', 'f_m', 'r_0', 'r_1', 'r_2', 'r_m', 'p_0', 'p_1', 'p_2', 'p_m', '+1', '0', '-1']])
 
@@ -71,7 +73,9 @@ def main(dir, method, trials, is_minimize, is_norm) :
                         path, 
                         result_all,
                         result_path + files[i],
-                        seeds[j]))
+                        select_futures,
+                        seeds[j],
+                    ))
                         
                     used_slead_count += 1
                     j += 1
@@ -79,31 +83,28 @@ def main(dir, method, trials, is_minimize, is_norm) :
                 if used_slead_count is MAX_SLEAD_COUNT: 
                     print('     Waited')
                     for f in concurrent.futures.as_completed(features) :
-                        p, r = f.result()
-                        # print(p)
-                        # print(r)
-                        result_all[i][1].append(r)
-                        result_all[i][0].append(p)
+                        # p, r = f.result()
+                        # result_all[i][1].append(r)
+                        # result_all[i][0].append(p)
+                        f.result()
                         used_slead_count -= 1
                         features.remove(f)
                 
-                # print('  seed ID: ' + str(j))
-                # result, param = [j], [j]
-                # forest.predict(seed=seed)
-                # p, r = forest.get_all_results(is_macro=True)
-                # result.extend(r)
-                # param.extend(p)
-                # result = [str(x) for x in result]
-                # results.append(result)
-                # params.append(param)
-                # print(results)
-                # return
-
+        for i in range(len(pathes)):
             with open(result_path + files[i], "w") as f :
                 writer = csv.writer(f, lineterminator='\n')
                 writer.writerows(result_all[i][0])
                 writer.writerows(result_all[i][1])
                 print("Complete: " + result_path + files[i])
+
+        features_path = result_path + "/features/"
+        if not os.path.exists(features_path):
+            os.mkdir(features_path)
+
+        for i, name in enumerate(files):
+            with open(features_path + name, "w") as f:
+                writer = csv.writer(f, lineterminator='\n')
+                writer.writerows(select_futures[i])
 
     else :
         print('Error: can\'t estimate with \'' + method + '\'')
@@ -111,7 +112,7 @@ def main(dir, method, trials, is_minimize, is_norm) :
 
     return True
 
-def update_result_list(path_index, index, estimator, path, result_all, result_path, seed=0) :
+def update_result_list(path_index, index, estimator, path, result_all, result_path, select_futures, seed=0) :
     print(' seed ID: ' + str(index) + ' (' + path + ')')
     result, param = [index], [index]
     estimator.predict(seed=seed)
@@ -120,12 +121,14 @@ def update_result_list(path_index, index, estimator, path, result_all, result_pa
     param.extend(p)
     result = [str(x) for x in result]
 
-    # result_all[path_index][0].append(param)
-    # result_all[path_index][1].append(result)
+    result_all[path_index][0].append(param)
+    result_all[path_index][1].append(result)
+
+    select_futures[path_index].append(estimator.get_select_features())
 
     print('     Complete: result_path ' + str(len(result_all[path_index][0])))
         
-    return result, param
+    # return result, param
 
 def change_no(x) :
     for i in x :
@@ -157,13 +160,22 @@ def argument_error(error_string) :
     sys.exit()
 
 if __name__ == "__main__":
-    args = sys.argv
-    warnings.filterwarnings('always')
-    ARG_LENGTH = 6
+    # args = sys.argv
+    # warnings.filterwarnings('always')
+    # ARG_LENGTH = 6
 
-    if len(args) < ARG_LENGTH :
-        argument_error('Error: few argments')
-    elif len(args) > ARG_LENGTH :
-        argument_error('Error: too many argments')
+    # if len(args) < ARG_LENGTH :
+    #     argument_error('Error: few argments')
+    # elif len(args) > ARG_LENGTH :
+    #     argument_error('Error: too many argments')
 
-    main(args[1], args[2], args[3], int(args[4]), int(args[5]))    
+    # main(args[1], args[2], args[3], int(args[4]), int(args[5]))  
+
+    me = MoodEstimator(
+        trials_count=10,
+        dirname="JSKE_2020_base",
+        is_minimize=True,
+        is_norm=True,
+    )
+
+    me.predict(method="random_forest")
