@@ -1,6 +1,7 @@
-import umap, time, sys, os, glob
+import umap, time, sys, os, glob, re
 import pandas as pd
 import warnings
+from no_label import FeatureValue
 
 warnings.simplefilter('ignore')
 
@@ -8,7 +9,15 @@ class OpensmileUmap:
     def __init__(self):
         self.__hoge = 0
 
-    def opensmile_umap(self, n_components, is_update=False):
+    def concat_vf(self):
+        fv = FeatureValue(is_labeled=False)
+        fv.set_voice_state()
+        fv.set_voice_features()
+
+        self.__vf_df = pd.DataFrame(fv.get_voice_features())
+        self.__vf_df.to_csv("./test.csv") 
+
+    def opensmile_umap(self, n_components, is_update=False, is_concat_vf=True):
         print("OPENSMILE_UMAP")
         print(" Now Loading CSV...")
         df = pd.read_csv('../data/IS10_CD.csv')
@@ -177,20 +186,21 @@ class OpensmileUmap:
 
 if __name__ == "__main__":
     OU = OpensmileUmap()
+    OU.concat_vf()
     # OU.opensmile_umap()
 
-    # TODO(Bag Fix): csvの読み込みと書き込みの時とで型が違う？
-    umap_df = OU.get_df(is_update=True)
-    vf_pathes = glob.glob("../data/JSKE_2020_base/*.csv")
+    # # TODO(Bag Fix): csvの読み込みと書き込みの時とで型が違う？
+    # umap_df = OU.get_df(is_update=True)
+    # vf_pathes = glob.glob("../data/JSKE_2020_base/*.csv")
 
-    if not os.path.exists("../data/OpenSmile_umap_2"):
-        os.mkdir("../data/OpenSmile_umap_2")
+    # if not os.path.exists("../data/OpenSmile_umap_2"):
+    #     os.mkdir("../data/OpenSmile_umap_2")
 
-    for path in vf_pathes:
-        vf_df = pd.read_csv(path)
-        print(vf_df)
-        features_df = pd.concat([vf_df, umap_df], axis=1)
-        print(features_df)
-        features_df.to_csv("../data/OpenSmile_umap_2/bite.csv")
-        umap_df.to_csv("../data/OpenSmile_umap_2/test.csv")
-        sys.exit()
+    # for path in vf_pathes:
+    #     vf_df = pd.read_csv(path)
+    #     print(vf_df)
+    #     features_df = pd.concat([vf_df, umap_df], axis=1)
+    #     print(features_df)
+    #     features_df.to_csv("../data/OpenSmile_umap_2/bite.csv")
+    #     umap_df.to_csv("../data/OpenSmile_umap_2/test.csv")
+    #     sys.exit()

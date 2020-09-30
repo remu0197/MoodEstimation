@@ -5,6 +5,7 @@ import numpy as np
 class OpenSMILE:
   def __init__(self):
     self.__CONFIG_PATH = "C:/Program Files/opensmile-2.3.0/config/IS10_paraling.conf"
+    
   def solo_opensmile(self, sound_dir):
     group_dirs = glob.glob(sound_dir + "/*")
     

@@ -10,7 +10,7 @@ class State() :
     STOP = 1
 
 class VoiceState :
-    def __init__(self, path_f, path_s) :
+    def __init__(self, path_f, path_s, is_labeled=True) :
         self.__stops = []
         self.__is_stop = [True, True]
         self.__is_fin_search = [False, False]
@@ -18,30 +18,33 @@ class VoiceState :
         self.__voice_states = []
         self.__time_line = 0.0
         self.__stash_timeline = -1
+        self.__is_labeled = is_labeled
 
         # print(path_f)
         EXCEPT_DIRPATH = "../../processing/data/except_sections/"
         except_dirs = glob.glob(EXCEPT_DIRPATH + "*")
 
         basename = os.path.basename(path_f).rstrip(".csv")
-        id, index = basename[2:], str(int(basename[0]) - 1)
-        subject_group = ""
 
-        for dir in except_dirs:
-            group_name = os.path.basename(dir)
-            if id in group_name:
-                subject_group = group_name
+        if self.__is_labeled:
+            id, index = basename[2:], str(int(basename[0]) - 1)
+            subject_group = ""
 
-        except_filepath = EXCEPT_DIRPATH + subject_group + "/" + str((int(id)+1) % 2) + "_" + index + ".csv"
-        if not os.path.exists(except_filepath):
-            except_filepath = EXCEPT_DIRPATH + subject_group + "/" + "0_" + index + ".csv"
-        # print(except_filepath)
-        
-        self.__is_except_list = []
-        with open(except_filepath, "r") as f:
-            reader = csv.reader(f)
-            for row in reader:
-                self.__is_except_list.append(row[0])
+            for dir in except_dirs:
+                group_name = os.path.basename(dir)
+                if id in group_name:
+                    subject_group = group_name
+
+            except_filepath = EXCEPT_DIRPATH + subject_group + "/" + str((int(id)+1) % 2) + "_" + index + ".csv"
+            if not os.path.exists(except_filepath):
+                except_filepath = EXCEPT_DIRPATH + subject_group + "/" + "0_" + index + ".csv"
+            # print(except_filepath)
+            
+            self.__is_except_list = []
+            with open(except_filepath, "r") as f:
+                reader = csv.reader(f)
+                for row in reader:
+                    self.__is_except_list.append(row[0])
 
         self.__is_active = False
         self.__is_except = "0"
@@ -73,7 +76,7 @@ class VoiceState :
 
     def __set_is_active(self, flag):
         # print(self.__index[Person.FIRST])
-        if flag and not self.__is_active:
+        if self.__is_labeled and flag and not self.__is_active:
             # print("Active!")
             self.__is_except = self.__is_except_list.pop(0)
 

@@ -2,12 +2,12 @@
 from sklearn.metrics import classification_report
 from sklearn.preprocessing import StandardScaler
 import pandas as pd
-import glob, os, csv, random, datetime, warnings
+import glob, os, csv, random, datetime, warnings, sys, copy
 from concurrent.futures import ProcessPoolExecutor, as_completed, ThreadPoolExecutor
 from random_forest import RandomForest
 
 class MoodEstimator:
-    def __init__(self, trials_count, dirname, is_minimize=False, is_norm=False):
+    def __init__(self, trials_count, dirname, is_minimize=False, is_norm=True):
         self.__used_process_count = 0
         self.__MAX_PROCESS_COUNT = 20
         self.__IS_MINIMIZE = is_minimize
@@ -15,8 +15,8 @@ class MoodEstimator:
         self.__DIR_NAME = dirname
         self.__file_names = []
 
-        self.__y_preds = [[] for _ in range(7)]
-        self.__y_trues = [[] for _ in range(7)]
+        self.__y_preds = [[[] for _ in range(trials_count)] for _ in range(7)]
+        self.__y_trues = [[[] for _ in range(trials_count)] for _ in range(7)]
 
         self.__seeds = []
         with open("../result/seeds.csv", "r") as f:
@@ -28,9 +28,9 @@ class MoodEstimator:
         self.__TRIALS_COUNT = int(trials_count)
         if len(self.__seeds) < self.__TRIALS_COUNT :
             for _ in range(self.__TRIALS_COUNT - len(self.__seeds)) :
-                x = random.randint(0, self.__TRIALS_COUNT * 10)
+                x = random.randint(0, self.__TRIALS_COUNT * 100)
                 while x in self.__seeds :
-                    x = random.randint(0, self.__TRIALS_COUNT * 10)
+                    x = random.randint(0, self.__TRIALS_COUNT * 100)
                 self.__seeds.append(x)
 
         elif len(self.__seeds) > self.__TRIALS_COUNT :
@@ -69,47 +69,111 @@ class MoodEstimator:
 
         return datasets
 
-    def __predict(self, method, dataset, target_index, seed):
+    def predict(self, method, dataset, seed):
         if method == "random_forest":
             rf = RandomForest()
-            y_pred, y_true = rf.predict(dataset, seed)
-            self.__y_preds[target_index].extend(y_pred)
-            self.__y_trues[target_index].extend(y_true)
+            # dataset_index = 0
+            # futures = []
+            y_preds, y_trues = [], []
+            # used_thread_count, MAX_THREAD_COUNT = 0, min(32, os.cpu_count()+4)
+            # executer = ThreadPoolExecutor(max_workers=MAX_THREAD_COUNT)
+
+            for data in dataset:
+                y_pred, y_true = rf.predict(data, seed=seed)
+                y_preds.extend(copy.copy(y_pred))
+                y_trues.extend(copy.copy(y_true))
+
+            # while dataset_index < len(dataset):
+            #     if used_thread_count < MAX_THREAD_COUNT:
+            #         futures.append(executer.submit(
+            #             rf.predict,
+            #             dataset[dataset_index], 
+            #             seed,
+            #             target_index,
+            #         ))
+            #         used_thread_count += 1
+            #         dataset_index += 1
+            #     else:
+            #         for f in as_completed(futures):
+            #             y_pred, y_true, index = f.result()
+            #             y_preds.extend(copy.copy(y_pred))
+            #             y_trues.extend(copy.copy(y_true))
+            #             used_thread_count -= 1
+            #             futures.remove(f)
+
+            # while len(futures) > 0:
+            #     for f in as_completed(futures):
+            #         y_pred, y_true, index = f.result()
+            #         y_preds.extend(copy.copy(y_pred))
+            #         y_trues.extend(copy.copy(y_true))
+            #         used_thread_count -= 1
+            #         futures.remove(f)
+
+            # return y_preds, y_trues, target_index, seed_index
+
+            return y_preds, y_trues
                 
-    def predict(self, method):
+    def run(self, method):
+        print("MoodEstimation")
         warnings.filterwarnings('ignore')
         pathes = glob.glob("../../feature_value/data/" + self.__DIR_NAME + "/*.csv")
         target_datasets = []
         for path in pathes:
+            print(" Load csvfile: " + path)
             filename = os.path.basename(path)
             self.__file_names.append(filename)
             target_datasets.append(self.__edit_dataset(path=path))
-        
-        executer = ProcessPoolExecutor(max_workers=self.__MAX_PROCESS_COUNT)
-        futures = []
 
+        print("Estimation ")
         for i, dataset in enumerate(target_datasets):
-            seed_index = 0
+            for j, seed in enumerate(self.__seeds):
+                print(" Set Target: " + dataset[0] + " - " + str(j))
+                y_preds, y_trues = self.predict(method, dataset[1:], seed)
+                self.__y_preds[i][j] = copy.copy(y_preds)
+                self.__y_trues[i][j] = copy.copy(y_trues)
 
-            while seed_index < len(self.__seeds) or len(futures) > 0:
-                if self.__used_process_count < self.__MAX_PROCESS_COUNT:        
-                    print("Set Target: " + dataset[0] + " - " + str(seed_index))
-                    futures.append(executer.submit(
-                        self.__predict,
-                        method,
-                        dataset[1:],
-                        i,
-                        self.__seeds[seed_index]
-                    ))
-                    self.__used_process_count += 1
-                    seed_index += 1
-                else:
-                    for f in as_completed(futures):
-                        f.result()
-                        self.__used_process_count -= 1
-                        futures.remove(f)
+        
+        # executer = ProcessPoolExecutor(max_workers=self.__MAX_PROCESS_COUNT)
+        # futures = []
+
+        # for i, dataset in enumerate(target_datasets):
+        #     seed_index = 0
+
+        #     while seed_index < len(self.__seeds):
+        #         if self.__used_process_count < self.__MAX_PROCESS_COUNT:        
+        #             print("Set Target: " + dataset[0] + " - " + str(seed_index))
+        #             futures.append(executer.submit(
+        #                 self.predict,
+        #                 method,
+        #                 dataset[1:],
+        #                 self.__seeds[seed_index],
+        #                 i,
+        #                 seed_index,
+        #             ))
+        #             self.__used_process_count += 1
+        #             seed_index += 1
+        #         else:
+        #             for f in as_completed(futures):
+        #                 print("complete")
+        #                 y_preds, y_trues, t_index, s_index = f.result()
+        #                 self.__y_preds[t_index][s_index] = copy.copy(y_preds)
+        #                 print(self.__y_preds[t_index])
+        #                 self.__y_trues[t_index][s_index] = copy.copy(y_trues)
+        #                 self.__used_process_count -= 1
+        #                 futures.remove(f)
+
+        # while len(futures) > 0:
+        #     for f in as_completed(futures):
+        #         print("complete")
+        #         y_preds, y_trues, t_index, s_index = f.result()
+        #         self.__y_preds[t_index][s_index] = copy.copy(y_preds)
+        #         # print(self.__y_preds[t_index])
+        #         self.__y_trues[t_index][s_index] = copy.copy(y_trues)
+        #         self.__used_process_count -= 1
+        #         futures.remove(f)
 
     def output_result(self):
+        # print("NG")
         classdir = '2_class/' if bool(self.__IS_MINIMIZE) else '3_class/'
         outdir = self.__DIR_NAME + ('_norm' if bool(self.__IS_NORM) is True else '')
         result_path = "../result/" + classdir + outdir + "/"
@@ -121,6 +185,15 @@ class MoodEstimator:
             os.mkdir(result_path)
 
         for i, filename in enumerate(self.__file_names):
-            d = classification_report(self.__y_trues[i], self.__y_preds[i], output_dict=True)
-            df = pd.DataFrame(d)
-            df.to_csv(result_path + filename)
+            df_all = pd.DataFrame()
+            for j in range(self.__TRIALS_COUNT):
+                d = classification_report(self.__y_trues[i][j], self.__y_preds[i][j], output_dict=True)
+                df = pd.DataFrame(d)
+                df_all = pd.concat([df_all, df])
+
+            df_all.to_csv(result_path + filename)
+
+if __name__ == "__main__":
+    me = MoodEstimator(10, "OpenSmile_umap_2")
+    me.run(method="random_forest")
+    me.output_result()

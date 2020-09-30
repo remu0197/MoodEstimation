@@ -35,7 +35,8 @@ class FeatureValue :
             self.set_voice_state(dir=dir+'/')
 
     def set_voice_state(self, dir='') :
-        pathes = glob.glob(self.__VAD_DIRPATH + dir + '*.csv')
+        pathes = glob.glob("../../processing/data/consortium/edit/**/sections/*.csv")
+        # pathes = glob.glob(self.__VAD_DIRPATH + dir + '*.csv')
         current_targets = []
 
         for i, path in enumerate(pathes) :
@@ -51,11 +52,11 @@ class FeatureValue :
                 # section = int(file_id / 1000)
                 # subject_id = int(file_id % 1000)
     
-                voice_l = VoiceState(path_l, path_r)
+                voice_l = VoiceState(path_l, path_r, is_labeled=False)
                 self.__voice_states.append(voice_l.get_voice_states(i-1, i-1))
                 self.__fin_times.append(voice_l.get_fin_time())
 
-                voice_r = VoiceState(path_r, path_l)
+                voice_r = VoiceState(path_r, path_l, is_labeled=False)
                 self.__voice_states.append(voice_r.get_voice_states(i, i))
                 self.__fin_times.append(voice_r.get_fin_time())
 
@@ -67,9 +68,13 @@ class FeatureValue :
         for states in self.__voice_states :
             for i, state in enumerate(states) :
                 if len(state) > 0 :
-                    print("state: " + str(state))
+                    # print("state: " + str(state))
+                    print(state)
                     feature = VoiceFeacure(voice_states=state)
                     self.__voice_features.append(feature.get_voice_feature(self.__fin_times[i]))
+
+    def get_voice_features(self):
+        return self.__voice_features
 
     def append_answer_features(self) :
         f = open(self.__QESTION_FILEPATH, 'r')
