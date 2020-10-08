@@ -140,7 +140,7 @@ class VoiceFeacure :
             # No.31-36
             for i in range(self.__STATISTIC_COUNT):
                 s1_index = i * state_count
-                x = (results[s1_index + 1] + results[s1_index + 2]) / (results[s1_index] + results[s1_index + 2])
+                x = (results[s1_index + 1] + results[s1_index + 2]) / self.__check_zero(results[s1_index] + results[s1_index + 2])
                 results.append(x)
 
             # No.37-42
@@ -288,3 +288,9 @@ class VoiceFeacure :
             if results[s1_index] != 0 or results[s1_index + 2] != 0 :
                 x = results[s1_index] / (results[s1_index] + results[s1_index + 2])
             results.append(x)
+
+    def __check_zero(self, value):
+        if value == 0.0:
+            return 0.1
+        else:
+            return value

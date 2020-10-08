@@ -6,6 +6,7 @@ from voice_state import VoiceState
 from voice_feature import VoiceFeacure
 from distutils.util import strtobool
 import os
+import numpy as np
 
 class FeatureValue :
     def __init__(self, is_labeled) :
@@ -19,9 +20,9 @@ class FeatureValue :
         self.__fin_times = []
         print(self.__VAD_DIRPATH)
 
-        MAX_ITEM_COUNT = 60
+        self.__MAX_ITEM_COUNT = 80
 
-        for i in range(1, MAX_ITEM_COUNT + 1) :
+        for i in range(1, self.__MAX_ITEM_COUNT + 1) :
             col_name.append(str(i))
 
         self.__csv_readers = []
@@ -35,7 +36,7 @@ class FeatureValue :
             self.set_voice_state(dir=dir+'/')
 
     def set_voice_state(self, dir='') :
-        pathes = glob.glob("../../processing/data/consortium/edit/**/sections/*.csv")
+        pathes = glob.glob("../../processing/data/consortium/edit/**/extract_sections/*.csv")
         # pathes = glob.glob(self.__VAD_DIRPATH + dir + '*.csv')
         current_targets = []
 
@@ -43,7 +44,7 @@ class FeatureValue :
             current_targets.append(path)
 
             if len(current_targets) == 2 :
-                print("current: " + str(current_targets))
+                print("Targets: " + str(current_targets))
                 path_l = current_targets[0]
                 path_r = current_targets[1]
 
@@ -65,13 +66,16 @@ class FeatureValue :
         return True
 
     def set_voice_features(self) :
-        for states in self.__voice_states :
-            for i, state in enumerate(states) :
-                if len(state) > 0 :
-                    # print("state: " + str(state))
-                    print(state)
-                    feature = VoiceFeacure(voice_states=state)
-                    self.__voice_features.append(feature.get_voice_feature(self.__fin_times[i]))
+        self.__voice_features.append(np.arange(1,self.__MAX_ITEM_COUNT+1))
+        for i, states in enumerate(self.__voice_states) :
+            print(states)
+            feature = VoiceFeacure(voice_states=states)
+            self.__voice_features.append(feature.get_voice_feature(self.__fin_times[i]))
+            # for state in states[1:] :
+            #     if len(state) > 0 :
+            #         print(" state: " + str(state))
+                    # feature = VoiceFeacure(voice_states=state)
+                    # self.__voice_features.append(feature.get_voice_feature(self.__fin_times[i]))
 
     def get_voice_features(self):
         return self.__voice_features
@@ -104,25 +108,22 @@ class FeatureValue :
             f.close()
 
     def write(self, path) :
-        f = open(path, 'w')
+        f = open(path, 'w', newline="")
         writer = csv.writer(f, lineterminator='\n')
-        for features in self.__voice_features :
-            writer.writerow(features)
+        writer.writerows(self.__voice_features)
 
         f.close()
         return True
 
 def main(is_labeled=True) :
     feature = FeatureValue(is_labeled)
-    # if is_labeled == True :
-    #     feature.set_voice_state()
-    # else :
-    feature.set_voice_states()
-
+    feature.set_voice_state()
     feature.set_voice_features()
+    feature.write("../data/no_label.csv")
+
     # if is_labeled == True :
     #     feature.append_answer_features()
-    feature.close()
+    # feature.close()
 
 if __name__ == '__main__':
     args = sys.argv

@@ -1,0 +1,6 @@
+受付番号：679
+登録番号：RWCP-SP96-20-003
+名　　称：RWCP 音声対話データベース - 96年版
+URL:http://dlsv.dsc.nii.ac.jp/src/shohey@katolab.nitech.ac.jp/0b5dabd990b57801/RWCP-SP96/dl/
+I D:shohey@katolab.nitech.ac.jp
+PAS:a4d06728993453c1

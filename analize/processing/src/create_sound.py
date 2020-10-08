@@ -67,25 +67,118 @@ class SoundCreater:
     count = 0
     data_dirs = glob.glob("../data/consortium/edit/*")
     for data_dir in data_dirs:
-      section_pathes = glob.glob(data_dir + "/sections/*.csv")
-      for path in section_pathes:
-        file_id = os.path.basename(path).rstrip(".csv")
-        sound_path = data_dir + "/sound/" + file_id + ".wav"
-        base_sound = AudioSegment.from_file(sound_path, format="wav")
-        start, end = 0.0, 0.0
+      if not os.path.exists(data_dir + "/extract_section_sound/"):
+        os.mkdir(data_dir + "/extract_section_sound/")
 
+      if not os.path.exists(data_dir + "/extract_sections/"):
+        os.mkdir(data_dir + "/extract_sections/")
+      
+      section_pathes = glob.glob(data_dir + "/sections/*_l.csv")
+      for path in section_pathes:
+        group_id = os.path.basename(path).replace("_l.csv", "")
+        sections_all_l = []
         with open(path, "r") as f:
           reader = csv.reader(f)
-          index = 0
           for row in reader:
-            end = float(row[0])
-            if float(end) != float(0):
-              # edit = base_sound[int(start*1000):int(end*1000)]
-              # edit.export(data_dir + "/extract_sound/" + file_id + "_" + str(index) + ".wav", format="wav")
-              index = index + 1
-              # print(str(start) + " : " + str(end))
-              count = count + 1
-            start = float(row[1])
+            sections_all_l.append([float(s) for s in row])
+
+        with open(os.path.dirname(path) + "/" + group_id + "_r.csv", "r") as f:
+          reader = csv.reader(f)
+          section_start, section_end = 0.0, 0.0
+          last_end = 0.0
+          section_length = 0.0
+          index = 0
+          is_skip = True
+          sections_l, sections_r = [], []
+
+          for row in reader:
+            [start, end] = [float(s) for s in row]
+
+            if not is_skip:
+              value = start - last_end
+              section_length += value
+              sections_r[len(sections_r)-1][2] += value
+            else:
+              section_start = start
+              is_skip = False
+
+            section_length += end - start
+            sections_r.append([start, end, (end-start)])
+            last_end = end
+
+            if section_length >= 20.0:
+              section_end = end
+              print(str(index) + ". " + str(section_start) + " - " + str(section_end) + " : " + str(section_length))
+              print(sections_r)
+
+              for section in sections_all_l:
+                if section[0] > section_start:
+                
+              sections_r.clear()
+              section_length = 0.0
+              is_skip = True
+              index += 1
+              count += 1
+
+        sys.exit()
+
+        # file_id = os.path.basename(path).rstrip(".csv")
+        # sound_path = data_dir + "/sound/" + file_id + ".wav"
+        # base_sound = AudioSegment.from_file(sound_path, format="wav")
+        # start, end = 0.0, 0.0
+        # current_sound_length = 0.0
+        # last_end = 0.0
+        # is_skip = True
+        # sections = []
+
+        # with open(path, "r") as f:
+        #   reader = csv.reader(f)
+        #   index = 0
+        #   for row in reader:
+        #     end = float(row[0])
+        #     if is_skip:
+        #       last_end = float(row[0])
+        #       is_skip = False
+        #     else:
+        #       current_sound_length += end - start
+
+        #     sections.append([float(row[0]) - last_end, float(row[1]) - last_end])
+
+        #     start = float(row[1])
+        #     current_sound_length += start - end
+
+        #     if current_sound_length > 41.0:
+        #       sections.clear()
+        #       current_sound_length = 0.0
+        #       is_skip = True
+        #     elif current_sound_length >= 20.0:
+        #       print(str(index) + ": " + str(current_sound_length))
+        #       edit = base_sound[int(last_end*1000):int(start*1000)]              
+        #       edit.export(data_dir + "/extract_section_sound/" + str(index) + "_" + file_id + ".wav", format="wav")
+
+        #       with open(data_dir + "/extract_sections/" + str(index) + "_" + file_id + ".csv", "w", newline="") as out:
+        #         writer = csv.writer(out, delimiter=",")
+        #         writer.writerows(sections)
+        #       sections.clear()
+
+        #       count += 1
+        #       index += 1
+        #       current_sound_length = 0.0
+        #       is_skip = True
+
+
+        # with open(path, "r") as f:
+        #   reader = csv.reader(f)
+        #   index = 0
+        #   for row in reader:
+        #     end = float(row[0])
+        #     if float(end) != float(0):
+        #       edit = base_sound[int(start*1000):int(end*1000)]
+        #       edit.export(data_dir + "/extract_sound/" + file_id + "_" + str(index) + ".wav", format="wav")
+        #       index = index + 1
+        #       print(str(start) + " : " + str(end))
+        #       count = count + 1
+        #     start = float(row[1])
 
     print("Total: " + str(count))
 

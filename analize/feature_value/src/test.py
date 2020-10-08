@@ -22,59 +22,74 @@
 # ax.set_ylabel('Death')
 # fig.colorbar(H[3],ax=ax)
 
-import csv
-import glob
-from enum import Enum
-import sys
-from voice_state import VoiceState
-from voice_feature import VoiceFeacure
-from distutils.util import strtobool
-import os
+# import csv
+# import glob
+# from enum import Enum
+# import sys
+# from voice_state import VoiceState
+# from voice_feature import VoiceFeacure
+# from distutils.util import strtobool
+# import os
 
-class FeatureValue :
-    def __init__(self, is_labeled, target_dir, question_path) :
-        self.__QESTION_FILEPATH = question_path
-        self.__VAD_DIRPATH = ''
-        self.__IS_LABELED = is_labeled
-        self.__TARGET_DIR = target_dir
-        self.__TARGET_ITEM = []
+# class FeatureValue :
+#     def __init__(self, is_labeled, target_dir, question_path) :
+#         self.__QESTION_FILEPATH = question_path
+#         self.__VAD_DIRPATH = ''
+#         self.__IS_LABELED = is_labeled
+#         self.__TARGET_DIR = target_dir
+#         self.__TARGET_ITEM = []
 
-        if is_labeled is True :
-            self.__VAD_DIRPATH = '../../VAD/data/csv/'
-            self.__TARGET_ITEM.append('swell')
-            self.__TARGET_ITEM.append('serious')
-            self.__TARGET_ITEM.append('bite')
-            self.__TARGET_ITEM.append('cheerful')
-            self.__TARGET_ITEM.append('calm')
-            self.__TARGET_ITEM.append('friendly')
-            self.__TARGET_ITEM.append('eminent')
-        else :
-            self.__VAD_DIRPATH = '../../VAD/data/no_label_csv/'
-            self.__TARGET_ITEM.append('no_label')
+#         if is_labeled is True :
+#             self.__VAD_DIRPATH = '../../VAD/data/csv/'
+#             self.__TARGET_ITEM.append('swell')
+#             self.__TARGET_ITEM.append('serious')
+#             self.__TARGET_ITEM.append('bite')
+#             self.__TARGET_ITEM.append('cheerful')
+#             self.__TARGET_ITEM.append('calm')
+#             self.__TARGET_ITEM.append('friendly')
+#             self.__TARGET_ITEM.append('eminent')
+#         else :
+#             self.__VAD_DIRPATH = '../../VAD/data/no_label_csv/'
+#             self.__TARGET_ITEM.append('no_label')
 
-        self.__voice_states = []
-        self.__voice_features = []
-        self.__fin_times = []
+#         self.__voice_states = []
+#         self.__voice_features = []
+#         self.__fin_times = []
         
-        # TODO : read from file
-        MAX_ITEM_COUNT = 60
-        col_name = ['ID', 'SECTION', 'ANSWER']
-        for i in range(1, MAX_ITEM_COUNT + 1) :
-            col_name.append(str(i))
+#         # TODO : read from file
+#         MAX_ITEM_COUNT = 60
+#         col_name = ['ID', 'SECTION', 'ANSWER']
+#         for i in range(1, MAX_ITEM_COUNT + 1) :
+#             col_name.append(str(i))
 
-    def set_voice_state(self) :
-        pathes = glob.glob(self.__VAD_DIRPATH + '*.csv')
-        current_target = []
+#     def set_voice_state(self) :
+#         pathes = glob.glob(self.__VAD_DIRPATH + '*.csv')
+#         current_target = []
         
-        for path in pathes :
-            print(path)
+#         for path in pathes :
+#             print(path)
 
 
-def main(is_labeled, target, question_path) :
-    path = question_path if is_labeled else ''
-    feature = FeatureValue(is_labeled, target, path)
-    feature.set_voice_state()
+# def main(is_labeled, target, question_path) :
+#     path = question_path if is_labeled else ''
+#     feature = FeatureValue(is_labeled, target, path)
+#     feature.set_voice_state()
+
+# if __name__ == "__main__":
+#     args = sys.argv
+#     main(bool(int(args[1])), args[2], '')
+
+import glob, wave
 
 if __name__ == "__main__":
-    args = sys.argv
-    main(bool(int(args[1])), args[2], '')
+    pathes = glob.glob("C:/Users/hasegawa/Documents/MATLAB/data/CD/**/*.wav", recursive=True)
+    total_time = 0.0
+
+    for path in pathes:
+        wf = wave.open(path, mode='rb')
+        time = wf.getnframes() / wf.getframerate()
+        
+        total_time += time
+
+    print("合計時間：" + str(total_time))
+    print(str(total_time / 40) + " < data_count < " + str(total_time / 20))
